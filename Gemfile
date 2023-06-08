@@ -1,4 +1,4 @@
 source 'http://rubygems.org'
 
 ASpaceGems.setup if defined? ASpaceGems
-gem 'resque'
+gem 'bunny', ">= 2.9.2"
