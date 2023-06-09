@@ -48,6 +48,7 @@ class Publish
   end
 
   def add_record(record)
+    record[:action] = "aspace_record_updated"
     message = record.to_json
     queue.publish(message, persistent: true)
     logger = Logger.new(STDOUT)
