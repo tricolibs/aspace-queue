@@ -47,9 +47,7 @@ class Publish
     self.queue = ch.queue(AppConfig[:message_queue], durable: true)
   end
 
-  def add_record(record)
-    action = { action: "aspace_record_updated" }
-    aspace_record = action.merge(record)
+  def send_record(aspace_record)
     message = aspace_record.to_json
     queue.publish(message, persistent: true)
   end
@@ -65,7 +63,14 @@ class IndexerCommon
     # record = the ASPACE record
     # doc = the document being put to SOLR
     indexer.add_document_prepare_hook {|doc, record|
-      Publish.new.add_record(record)
+      action = { action: "aspace_record_updated" }
+      aspace_record = action.merge(record)
+      Publish.new.send_record(aspace_record)
+    }
+    indexer.add_delete_hook { |doc, record|
+      action = { action: "aspace_record_deleted" }
+      aspace_record = action.merge(record)
+      Publish.new.send_record(aspace_record)
     }
   end
 
