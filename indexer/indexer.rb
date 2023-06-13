@@ -48,11 +48,10 @@ class Publish
   end
 
   def add_record(record)
-    record[:action] = "aspace_record_updated"
-    message = record.to_json
+    action = { action: "aspace_record_updated" }
+    aspace_record = action.merge(record)
+    message = aspace_record.to_json
     queue.publish(message, persistent: true)
-    logger = Logger.new(STDOUT)
-    logger.info { "Is the indexer plugin working?"}
   end
 
 end
