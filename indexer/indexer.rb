@@ -41,10 +41,19 @@ class Publish
   end
 
   def initialize_bunny
-    self.conn = Bunny.new(host: 'message.tricolib.brynmawr.edu', user: AppConfig[:message_user], pass: AppConfig[:message_password], vhost: AppConfig[:message_vhost])
-    conn.start
-    self.ch = conn.create_channel
-    self.queue = ch.queue(AppConfig[:message_queue], durable: true)
+    begin
+      self.conn = Bunny.new(host: 'message.tricolib.brynmawr.edu', user: AppConfig[:message_user], pass: AppConfig[:message_password], vhost: AppConfig[:message_vhost])
+      conn.start
+    rescue Bunny::TCPConnectionFailed => e
+      puts "Connection to message server failed"
+    end
+
+    begin
+      self.ch = conn.create_channel
+      self.queue = ch.queue(AppConfig[:message_queue], durable: true)
+    rescue Bunny::Bunny::NotFound => e
+      puts "Channel-level exception! Code: #{e.channel_close.reply_code}, message: #{e.channel_close.reply_text}"
+    end
   end
 
   def send_record(aspace_record)
