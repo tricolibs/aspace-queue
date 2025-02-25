@@ -66,7 +66,11 @@ end
 # this overrides our indexers
 class IndexerCommon
   # connect with message server
-  messenger = Publish.new()
+  begin
+    messenger = Publish.new()
+  rescue => e
+    puts "Could not initialize Bunny"
+  end
   # we add a new hook when the indexeres are created
   add_indexer_initialize_hook do |indexer|
     # and we add a hook that happens when the record is being prepared for indexing
@@ -75,12 +79,20 @@ class IndexerCommon
     indexer.add_document_prepare_hook {|doc, record|
       action = { action: "aspace_record_updated" }
       aspace_record = action.merge(record)
-      messenger.send_record(aspace_record)
+      begin
+        messenger.send_record(aspace_record)
+      rescue => e
+        puts "Could not send message"
+      end
     }
     indexer.add_delete_hook { |doc, record|
       action = { action: "aspace_record_deleted" }
       aspace_record = action.merge(record)
-      messenger.send_record(aspace_record)
+      begin
+        messenger.send_record(aspace_record)
+      rescue => e
+        puts "Could not send message"
+      end
     }
   end
 
